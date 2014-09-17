@@ -1,25 +1,22 @@
 package com.triptomap.libs.picture;
 
-import com.triptomap.libs.picture.algo.Bezier;
-import org.apache.commons.collections4.Transformer;
+import com.triptomap.libs.picture.math.CatmullRom;
+import com.triptomap.libs.picture.math.Point2D;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphicsJava2D;
 import processing.core.PImage;
 
 import java.awt.*;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.apache.commons.collections4.CollectionUtils.collect;
 
 /**
  * @author smecsia
  */
 public class RouteDemo extends PApplet {
 
-    PImage img;
+    PImage img, globe;
     PFont font;
 
     class Vertex {
@@ -41,6 +38,12 @@ public class RouteDemo extends PApplet {
         }
     }
 
+    class BezierCurve {
+        float x1, y1, x2, y2;
+        float ax1, ay1;
+    }
+
+
     enum Transport {
         CAR, TRAIN, PLANE, BUS
     }
@@ -50,47 +53,52 @@ public class RouteDemo extends PApplet {
     public void setup() {
         resize(800, 600);
         size(getWidth(), getHeight());
+        globe = loadImage("globe.jpg");
         img = loadImage("trip.jpg");
         noStroke();
         smooth();
-        img.resize(getWidth(), getHeight());
+        float aspect = ((float) height) / ((float) img.height);
+        float gAspect = ((float) height) / ((float) globe.height)  * 2.2f;
+        img.resize((int) (img.width * aspect), (int) (img.height * aspect));
+        globe.resize((int) (globe.width * gAspect), (int) (globe.height * gAspect));
+
         noLoop();
         font = createFont("Verdana Bold", 22);
     }
 
     public void draw() {
-        image(img, 0, 0);
+        tint(255, 255);
+        image(img, width / 2 - img.width / 2, height / 2 - img.height / 2);
+        tint(175, 70);
+        image(globe, width / 2 - globe.width / 2, height / 2 - globe.height / 2);
+        tint(255, 255);
 
         if (vertexes.size() > 0) {
 
-            float[] dashes = {6.0f, 20.0f};
-            stroke(255, 255, 230, 180);
-            BasicStroke pen = new BasicStroke(10.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER,
-                    4.0f, dashes, 0.0f);
-            Graphics2D g2 = ((PGraphicsJava2D) g).g2;
-            g2.setStroke(pen);
-
-
-            Bezier bezier = new Bezier(collect(vertexes, new Transformer<Vertex, Point2D>() {
-                @Override
-                public Point2D transform(Vertex input) {
-                    return new Point2D.Double(input.x, input.y);
-                }
-            }).toArray(new Point2D[vertexes.size()]));
-
-            final Vertex last = vertexes.get(vertexes.size() - 1);
-            final Vertex first = vertexes.get(0);
             noFill();
+            setRouteStroke(10.0f);
             beginShape();
-//            for (Point2D vertex : bezier.getPoints()) {
-//                vertex((float) vertex.getX(), (float) vertex.getY());
-//            }
-            curveVertex(first.x, first.y);
-            for (Vertex vertex : vertexes) {
-                curveVertex(vertex.x, vertex.y);
+
+            if (vertexes.size() >= 2) {
+                final Vertex last = vertexes.get(vertexes.size() - 1);
+                final Vertex first = vertexes.get(0);
+                CatmullRom catmullRom = new CatmullRom();
+                catmullRom.addPoint(first.getX(), first.getY());
+                for (Vertex vertex : vertexes) {
+                    catmullRom.addPoint(vertex.x, vertex.y);
+                }
+                catmullRom.addPoint(last.getX(), last.getY());
+                List<Point2D> points = catmullRom.getInterpolated(15);
+                for (int i = 1; i < points.size(); i++) {
+                    line((float) points.get(i - 1).getX(), (float) points.get(i - 1).getY(),
+                            (float) points.get(i).getX(), (float) points.get(i).getY());
+                    if (points.get(i).isCenter()) {
+                        transport(randomTransport(), points.get(i).getX(), points.get(i).getY());
+                    }
+                }
             }
-            curveVertex(last.x, last.y);
             endShape();
+
             noStroke();
 
             for (Vertex vertex : vertexes) {
@@ -98,7 +106,13 @@ public class RouteDemo extends PApplet {
                 fill(255, 255, 230);
                 ellipse(vertex.x, vertex.y, 15, 15);
 
-                strokeText(vertex.city, vertex.x + 22, vertex.y - 12, 3);
+                int cityX = vertex.x + 22;
+                int cityY = vertex.y - 12;
+
+                if (cityX + textWidth(vertex.city) > getWidth()) {
+                    cityX = (int) (getWidth() - textWidth(vertex.city) - 10);
+                }
+                cityText(vertex.city, cityX, cityY, 3);
 
                 noFill();
                 stroke(255, 255, 230);
@@ -107,25 +121,31 @@ public class RouteDemo extends PApplet {
 
             }
 
-            for (int i = 1; i < vertexes.size(); i++) {
-                transport(randomTransport(), vertexes.get(i - 1).x, vertexes.get(i - 1).y,
-                        vertexes.get(i).x, vertexes.get(i).y);
-            }
+
         }
         save(System.getProperty("user.home") + "/map.png");
+    }
+
+    private void setRouteStroke(float width) {
+        float[] dashes = {6.0f, 20.0f};
+        stroke(255, 255, 230, 180);
+        BasicStroke pen = new BasicStroke(width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER,
+                4.0f, dashes, 0.0f);
+        Graphics2D g2 = ((PGraphicsJava2D) g).g2;
+        g2.setStroke(pen);
     }
 
     Transport randomTransport() {
         return Transport.values()[((int) random(Transport.values().length - 1))];
     }
 
-    void transport(Transport transport, int x1, int y1, int x2, int y2) {
+    void transport(Transport transport, int x, int y) {
         PImage tImg = loadImage("icon-" + transport.name().toLowerCase() + ".png");
         tImg.resize(50, 50);
-        image(tImg, (x1 + x2) / 2 - 25, (y1 + y2) / 2 - 25);
+        image(tImg, x - 25, y - 25);
     }
 
-    void strokeText(String message, int x, int y, int shadowSize) {
+    void cityText(String message, int x, int y, int shadowSize) {
         textFont(font);
         for (int i = 1; i <= shadowSize; ++i) {
             fill(0, 0, 0, 2);
