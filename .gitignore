@@ -10,10 +10,3 @@ target
 *.iml
 *.ipr
 *.iws
-
-/.local-db
-
-#compass files
-/server/src/main/webapp/css/
-/server/.sass-cache/
-/server/src/main/webapp/.sass-cache/
