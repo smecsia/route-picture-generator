@@ -19,6 +19,13 @@
         <url>http://triptomap.com</url>
     </organization>
 
+    <repositories>
+        <repository>
+            <id>triptomap-public</id>
+            <url>http://maven.triptomap.com</url>
+        </repository>
+    </repositories>
+
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -52,8 +59,6 @@
             <groupId>org.processing</groupId>
             <artifactId>processing-core</artifactId>
             <version>3.0a2</version>
-            <systemPath>${project.basedir}/tpl/processing-core-3.0a2.jar</systemPath>
-            <scope>system</scope>
         </dependency>
         <dependency>
             <groupId>com.googlecode.lambdaj</groupId>
@@ -69,6 +74,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodd</groupId>
+            <artifactId>jodd</artifactId>
+            <version>3.3.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
