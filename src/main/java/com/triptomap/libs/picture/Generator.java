@@ -42,6 +42,8 @@ public class Generator {
             timeout += 30;
             sleep(30);
         }
-        return applet.getOutputFile();
+        final File outputFile = applet.getOutputFile();
+        window.dispose();
+        return outputFile;
     }
 }
