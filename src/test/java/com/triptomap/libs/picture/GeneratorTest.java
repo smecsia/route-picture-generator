@@ -16,8 +16,9 @@ public class GeneratorTest {
 
     @Test
     public void testGenerate() throws Exception {
+        final String imagePath = getClass().getClassLoader().getResource("trip.jpg").getPath();
         File file = new Generator(300, 250, 3000).generate(
-                new File("/home/smecsia/projects/route-picture-generator/src/main/resources/trip.jpg"),
+                new File(imagePath),
                 new ArrayList<TripPoint>(
                         asList(
                                 new TripPoint(0.0, 0.0, "London"),
