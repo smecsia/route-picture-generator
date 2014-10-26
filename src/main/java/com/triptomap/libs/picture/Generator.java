@@ -26,7 +26,9 @@ public class Generator {
     }
 
     public File generate(final File picture, final List<TripPoint> places) throws IOException, InterruptedException {
-        new ViewPort(0.75, 15).adjustToViewPort(width, height, places);
+        final ViewPort viewPort = new ViewPort(0.85, 15, width, height);
+        viewPort.convertToFlat(places);
+        viewPort.adjustToViewPort(places);
         final RouteDemo applet = new RouteDemo((int) width, (int) height, picture.getPath(), places);
         applet.init();
         JFrame window = new JFrame();

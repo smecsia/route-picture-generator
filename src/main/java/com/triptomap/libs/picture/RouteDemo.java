@@ -31,10 +31,6 @@ public class RouteDemo extends PApplet {
     private File outputFile;
     private volatile boolean painted = false;
 
-    enum Transport {
-        CAR, TRAIN, PLANE, BUS
-    }
-
     List<TripPoint> vertexes = new ArrayList<TripPoint>();
 
     public RouteDemo() {
@@ -61,10 +57,11 @@ public class RouteDemo extends PApplet {
         noStroke();
         smooth();
         float aspect = ((float) height) / ((float) img.height);
-//        float gAspect = ((float) height) / ((float) globe.height) * 2.2f;
+        float fadeAspect = ((float) height) / ((float) fade.height);
+        float gAspect = ((float) height) / ((float) globe.height) * 1.2f;
         img.resize((int) (img.width * aspect), (int) (img.height * aspect));
-        globe.resize((int) (globe.width * aspect), (int) (globe.height * aspect));
-        fade.resize((int) (fade.width * aspect), (int) (fade.height * aspect));
+        globe.resize((int) (globe.width * gAspect), (int) (globe.height * gAspect));
+        fade.resize((int) (fade.width * fadeAspect), (int) (fade.height * fadeAspect));
 
         noLoop();
         font = createFont("Verdana Bold", 10);
@@ -78,7 +75,7 @@ public class RouteDemo extends PApplet {
         tint(255, 255);
         image(img, width / 2 - img.width / 2, height / 2 - img.height / 2);
         tint(240);
-        image(fade, width / 2 - globe.width / 2, height / 2 - globe.height / 2);
+        image(fade, width / 2 - fade.width / 2, height / 2 - fade.height / 2);
         tint(190);
         image(globe, width / 2 - globe.width / 2, height / 2 - globe.height / 2);
         tint(255, 255);
@@ -105,9 +102,10 @@ public class RouteDemo extends PApplet {
                                 (float) points.get(i).getX(), (float) points.get(i).getY());
                 }
                 fill(255);
+                int transportIdx = 0;
                 for (int i = 1; i < points.size(); i++) {
                     if (points.get(i).isCenter()) {
-                        transport(randomTransport(), points.get(i).getX(), points.get(i).getY());
+                        transport(vertexes.get(++transportIdx).getTransport(), points.get(i).getX(), points.get(i).getY());
                     }
                 }
             }
@@ -159,11 +157,7 @@ public class RouteDemo extends PApplet {
         g2.setStroke(pen);
     }
 
-    Transport randomTransport() {
-        return Transport.values()[((int) random(Transport.values().length - 1))];
-    }
-
-    void transport(Transport transport, int x, int y) {
+    void transport(TripPoint.Transport transport, int x, int y) {
         PImage tImg = loadImage("icon-" + transport.name().toLowerCase() + ".png");
         tImg.resize(20, 20);
         image(tImg, x - 10, y - 10);

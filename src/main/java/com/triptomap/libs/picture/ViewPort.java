@@ -12,19 +12,29 @@ public class ViewPort {
     TripPoint rightBottom = new TripPoint(Double.MIN_VALUE, Double.MIN_VALUE);
     private int padding;
     private double borderSize;
+    private double width;
+    private double height;
 
-    public ViewPort(double borderSize, int padding) {
+    public ViewPort(double borderSize, int padding, double width, double height) {
         this.borderSize = borderSize;
         this.padding = padding;
+        this.width = width;
+        this.height = height;
     }
 
-    public void adjustToViewPort(double width, double height, List<TripPoint> places) {
+    public void adjustToViewPort(List<TripPoint> places) {
         for (TripPoint place : places) {
-            if (place.getY() < leftTop.getY() && place.getX() < leftTop.getX()) {
-                leftTop = place;
+            if (place.getY() < leftTop.getY()) {
+                leftTop.setY(place.getY());
             }
-            if (place.getY() > rightBottom.getY() && place.getX() > rightBottom.getX()) {
-                rightBottom = place;
+            if(place.getX() < leftTop.getX()){
+                leftTop.setX(place.getX());
+            }
+            if (place.getY() > rightBottom.getY()) {
+                rightBottom.setY(place.getY());
+            }
+            if(place.getX() > rightBottom.getX()){
+                rightBottom.setX(place.getX());
             }
         }
         double scaleX = width / (rightBottom.getX() - leftTop.getX());
@@ -34,6 +44,21 @@ public class ViewPort {
             place.setY((place.getY() - leftTop.getY()) * scaleY * borderSize + padding);
         }
     }
+
+    public void convertToFlat(List<TripPoint> places) {
+        for (TripPoint place : places) {
+            double latRads = Math.toRadians(place.getLatitude());
+            double pixZoom = (1 << 6) * 256;
+            double x = (Math.floor(((180.0 + place.getLongitude()) / 360.0) * pixZoom));
+            double y = (Math.floor((1 - Math.log(Math.tan(latRads) + 1 / Math.cos(latRads)) / Math.PI) / 2 * pixZoom));
+            //Add in offsets
+//            x -= 1948;
+//            y -= 5268;
+            place.setX(x);
+            place.setY(y);
+        }
+    }
+
 
     public TripPoint getLeftTop() {
         return leftTop;
