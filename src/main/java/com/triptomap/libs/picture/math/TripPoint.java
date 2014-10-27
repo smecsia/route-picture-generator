@@ -9,7 +9,7 @@ public class TripPoint {
     Transport transport;
 
     public static enum Transport {
-        CAR, TRAIN, PLANE, BUS
+        CAR, TRAIN, PLANE, BUS, BIKE, WALK, BOAT
     }
 
     public TripPoint() {
