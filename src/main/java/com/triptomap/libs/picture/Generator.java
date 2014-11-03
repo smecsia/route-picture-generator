@@ -18,6 +18,8 @@ public class Generator {
     private double width;
     private double height;
     private int waitTimeout;
+    private double borderSize = 0.80;
+    private int padding = 20;
 
     public Generator(double width, double height, int waitTimeout) {
         this.width = width;
@@ -26,7 +28,7 @@ public class Generator {
     }
 
     public File generate(final File picture, final List<TripPoint> places) throws IOException, InterruptedException {
-        final ViewPort viewPort = new ViewPort(0.85, 15, width, height);
+        final ViewPort viewPort = new ViewPort(borderSize, padding, width, height);
         viewPort.convertToFlat(places);
         viewPort.adjustToViewPort(places);
         final RouteDemo applet = new RouteDemo((int) width, (int) height, picture.getPath(), places);
@@ -47,5 +49,21 @@ public class Generator {
         final File outputFile = applet.getOutputFile();
         window.dispose();
         return outputFile;
+    }
+
+    public double getBorderSize() {
+        return borderSize;
+    }
+
+    public void setBorderSize(double borderSize) {
+        this.borderSize = borderSize;
+    }
+
+    public int getPadding() {
+        return padding;
+    }
+
+    public void setPadding(int padding) {
+        this.padding = padding;
     }
 }

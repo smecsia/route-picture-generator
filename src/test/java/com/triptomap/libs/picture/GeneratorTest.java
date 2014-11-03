@@ -7,9 +7,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.ArrayList;
 
-import static com.triptomap.libs.picture.math.TripPoint.Transport.CAR;
-import static com.triptomap.libs.picture.math.TripPoint.Transport.PLANE;
-import static com.triptomap.libs.picture.math.TripPoint.Transport.TRAIN;
+import static com.triptomap.libs.picture.math.TripPoint.Transport.*;
 import static java.util.Arrays.asList;
 
 /**
@@ -28,8 +26,9 @@ public class GeneratorTest {
                                 new TripPoint(35.86, 139.64, "St.Petersburg").withTransport(PLANE),
                                 new TripPoint(39.904, 116.40, "Moscow").withTransport(TRAIN),
                                 new TripPoint(40.71, -74.006, "Tokyo").withTransport(CAR),
-                                new TripPoint(42.5, 1.5218, "Another place").withTransport(PLANE),
-                                new TripPoint(32.019, 25.268, "Placesss...").withTransport(CAR)
+                                new TripPoint(50.71, -74.006, "Somewhere").withTransport(BOAT),
+                                new TripPoint(42.5, 1.5218, "Another place").withTransport(BUS),
+                                new TripPoint(32.019, 25.268, "Placesss...").withTransport(WALK)
                         )
                 )
         );
