@@ -13,7 +13,23 @@ import static java.util.Arrays.asList;
 /**
  * @author smecsia
  */
+@SuppressWarnings("ConstantConditions")
 public class GeneratorTest {
+
+    @Test
+    public void testGenerateSimpleCoords() throws Exception {
+        final String imagePath = getClass().getClassLoader().getResource("trip-cover.jpg").getPath();
+        File file = new Generator(300, 250, 3000).generate(
+                new File(imagePath),
+                new ArrayList<>(
+                        asList(
+                                new TripPoint(45.440999999999995, 12.322833305555555, "London"),
+                                new TripPoint(45.44083330555555, 10.701833305555555, "St.Petersburg").withTransport(PLANE)
+                        )
+                )
+        );
+        FileUtil.copy(file, new File(System.getProperty("user.home") + "/trip.png"));
+    }
 
     @Test
     public void testGenerate() throws Exception {

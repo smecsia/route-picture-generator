@@ -4,6 +4,9 @@ import com.triptomap.libs.picture.math.TripPoint;
 
 import java.util.List;
 
+import static java.lang.Double.isInfinite;
+import static java.lang.Double.isNaN;
+
 /**
  * @author smecsia
  */
@@ -27,13 +30,13 @@ public class ViewPort {
             if (place.getY() < leftTop.getY()) {
                 leftTop.setY(place.getY());
             }
-            if(place.getX() < leftTop.getX()){
+            if (place.getX() < leftTop.getX()) {
                 leftTop.setX(place.getX());
             }
             if (place.getY() > rightBottom.getY()) {
                 rightBottom.setY(place.getY());
             }
-            if(place.getX() > rightBottom.getX()){
+            if (place.getX() > rightBottom.getX()) {
                 rightBottom.setX(place.getX());
             }
         }
@@ -42,6 +45,12 @@ public class ViewPort {
         for (TripPoint place : places) {
             place.setX((place.getX() - leftTop.getX()) * scaleX * borderSize + padding);
             place.setY((place.getY() - leftTop.getY()) * scaleY * borderSize + padding);
+            if (isInfinite(scaleX) || isNaN(scaleX)) {
+                place.setX(width / 2.0);
+            }
+            if (isInfinite(scaleY) || isNaN(scaleY)) {
+                place.setY(height / 2.0);
+            }
         }
     }
 

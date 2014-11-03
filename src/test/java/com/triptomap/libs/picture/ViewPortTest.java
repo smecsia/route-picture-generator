@@ -5,12 +5,33 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
+import static com.triptomap.libs.picture.math.TripPoint.Transport.PLANE;
 import static java.util.Arrays.asList;
 
 /**
  * @author smecsia
  */
 public class ViewPortTest {
+
+    @Test
+    public void testAdjustSameLat() throws Exception {
+        final ViewPort viewPort = new ViewPort(0.85, 15, 300, 250);
+        final ArrayList<TripPoint> places = new ArrayList<>(
+                asList(
+                        new TripPoint(45.440999999999995, 12.322833305555555, "London"),
+                        new TripPoint(45.44083330555555, 10.701833305555555, "St.Petersburg").withTransport(PLANE)
+                )
+        );
+        viewPort.convertToFlat(places);
+        for (TripPoint place : places) {
+            System.out.println("Place: " + place.getX() + ";" + place.getY() + " : " + place.getName());
+        }
+        viewPort.adjustToViewPort(places);
+        for (TripPoint place : places) {
+            System.out.println("Place: " + place.getX() + ";" + place.getY() + " : " + place.getName());
+        }
+    }
+
 
     @Test
     public void testConvertToFlat() throws Exception {
