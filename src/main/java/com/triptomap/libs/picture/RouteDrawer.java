@@ -3,6 +3,8 @@ package com.triptomap.libs.picture;
 import com.triptomap.libs.picture.math.CatmullRom;
 import com.triptomap.libs.picture.math.Point2D;
 import com.triptomap.libs.picture.math.TripPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphicsJava2D;
@@ -17,11 +19,14 @@ import java.util.List;
 import java.util.Set;
 
 import static com.triptomap.libs.picture.util.FileUtil.createTempFile;
+import static com.triptomap.libs.picture.util.ImageUtil.ImageInformation;
+import static com.triptomap.libs.picture.util.ImageUtil.readImageInformation;
 
 /**
  * @author smecsia
  */
-public class RouteDemo extends PApplet {
+public class RouteDrawer extends PApplet {
+    final Logger logger = LoggerFactory.getLogger(getClass());
 
     PImage img, globe, fade;
     PFont font;
@@ -30,13 +35,14 @@ public class RouteDemo extends PApplet {
     private String filename = "trip.jpg";
     private File outputFile;
     private volatile boolean painted = false;
+    private ImageInformation imgInfo;
 
     List<TripPoint> vertexes = new ArrayList<TripPoint>();
 
-    public RouteDemo() {
+    public RouteDrawer() {
     }
 
-    public RouteDemo(int width, int height, String filePath, List<TripPoint> vertexes) throws IOException {
+    public RouteDrawer(int width, int height, String filePath, List<TripPoint> vertexes) throws IOException {
         this.width = width;
         this.height = height;
         this.vertexes = vertexes;
@@ -51,15 +57,24 @@ public class RouteDemo extends PApplet {
     public void setup() {
         resize(width, height);
         size(getWidth(), getHeight());
-        globe = loadImage("globe.png");
         img = loadImage(filename);
+        try {
+            imgInfo = readImageInformation(new File(filename));
+        } catch (Exception e) {
+            logger.warn("Failed to read image metadata, using defaults", e);
+            imgInfo = new ImageInformation(1, img.width, img.height);
+        }
+        float aspect = (imgInfo.orientation > 4) ? (((float) width) / ((float) img.height)) :
+                ((float) height) / ((float) img.height);
+        img.resize((int) (img.width * aspect), (int) (img.height * aspect));
+
+        globe = loadImage("globe.png");
         fade = loadImage("fade-effect.png");
         noStroke();
         smooth();
-        float aspect = ((float) height) / ((float) img.height);
         float fadeAspect = ((float) height) / ((float) fade.height);
         float gAspect = ((float) height) / ((float) globe.height) * 1.2f;
-        img.resize((int) (img.width * aspect), (int) (img.height * aspect));
+
         globe.resize((int) (globe.width * gAspect), (int) (globe.height * gAspect));
         fade.resize((int) (fade.width * fadeAspect), (int) (fade.height * fadeAspect));
 
@@ -73,7 +88,7 @@ public class RouteDemo extends PApplet {
 
     public void draw() {
         tint(255, 255);
-        image(img, width / 2 - img.width / 2, height / 2 - img.height / 2);
+        drawImage();
         tint(240);
         image(fade, width / 2 - fade.width / 2, height / 2 - fade.height / 2);
         tint(190);
@@ -148,6 +163,50 @@ public class RouteDemo extends PApplet {
         painted = true;
     }
 
+
+    public void drawImage() {
+        pushMatrix();
+        switch (imgInfo.orientation) {
+            case 1:
+                break;
+            case 2: // Flip X
+                scale(-1.0f, 1.0f);
+                translate(-img.width, 0);
+                break;
+            case 3: // PI rotation
+                translate(img.width, img.height);
+                rotate((float) Math.PI);
+                break;
+            case 4: // Flip Y
+                scale(1.0f, -1.0f);
+                translate(0, -img.height);
+                break;
+            case 5: // - PI/2 and Flip X
+                rotate((float) (-Math.PI / 2.0));
+                scale(-1.0f, 1.0f);
+                break;
+            case 6: // -PI/2 and -width
+                translate(img.height, 0);
+                rotate((float) (Math.PI / 2.0));
+                break;
+            case 7: // PI/2 and Flip
+                scale(-1.0f, 1.0f);
+                translate(-img.height, 0);
+                translate(0, img.width);
+                rotate((float) (3.0 * Math.PI / 2.0));
+                break;
+            case 8: // PI / 2
+                translate(0, img.width);
+                rotate((float) (3.0 * Math.PI / 2.0));
+                break;
+        }
+        final int x = width / 2 - img.width / 2;
+        final int y = height / 2 - img.height / 2;
+        image(img, (imgInfo.orientation > 4) ? y : x, (imgInfo.orientation > 4) ? x : y);
+        image(img, 0, 0);
+        popMatrix();
+    }
+
     private void setRouteStroke(float width) {
         float[] dashes = {3.0f, 10.0f};
         stroke(255, 255, 230, 255);
@@ -184,6 +243,6 @@ public class RouteDemo extends PApplet {
     }
 
     public static void main(String args[]) {
-        PApplet.main(new String[]{"--present", RouteDemo.class.getName()});
+        PApplet.main(new String[]{"--present", RouteDrawer.class.getName()});
     }
 }
